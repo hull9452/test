@@ -1,0 +1,48 @@
+name: Daily Push
+
+on:
+  schedule:
+    # 每天早上 7:30 (UTC 23:30)
+    - cron: '30 23 * * *'
+    # 每天晚上 8:30 (UTC 12:30)
+    - cron: '30 12 * * *'
+  workflow_dispatch:  # 允许手动触发
+
+jobs:
+  send-message:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.10'
+
+      - name: Install dependencies
+        run: pip install requests
+
+      - name: Run morning push
+        if: github.event.schedule == '30 23 * * *'
+        env:
+          APP_ID: ${{ secrets.APP_ID }}
+          APP_SECRET: ${{ secrets.APP_SECRET }}
+          OPEN_ID: ${{ secrets.OPEN_ID }}
+          WEATHER_API_KEY: ${{ secrets.WEATHER_API_KEY }}
+          TEMPLATE_ID: ${{ secrets.TEMPLATE_ID }}
+          CITY: ${{ secrets.CITY }}
+          TIME_OF_DAY: morning
+        run: python daily_push.py
+
+      - name: Run evening push
+        if: github.event.schedule == '30 12 * * *'
+        env:
+          APP_ID: ${{ secrets.APP_ID }}
+          APP_SECRET: ${{ secrets.APP_SECRET }}
+          OPEN_ID: ${{ secrets.OPEN_ID }}
+          WEATHER_API_KEY: ${{ secrets.WEATHER_API_KEY }}
+          TEMPLATE_ID: ${{ secrets.TEMPLATE_ID }}
+          CITY: ${{ secrets.CITY }}
+          TIME_OF_DAY: evening
+        run: python daily_push.py
